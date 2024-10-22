@@ -1,0 +1,43 @@
+---
+- hosts: localhost
+  gather_facts: true
+  check_mode: no
+  tasks:
+  - name: Split hosts into a list
+    set_fact:
+      hosts_list: "{{ hosts | split(',') }}"
+
+  - name: Add public ip addresses to an dynamic inventory
+    add_host:
+      name: "{{ host }}"
+      groups: all
+    loop: "{{ hosts_list }}"
+    loop_control:
+      loop_var: host
+
+  - local_action: wait_for port=22 host="{{ host }}" search_regex=OpenSSH delay=10
+    loop: "{{ hosts_list }}"
+    loop_control:
+      loop_var: host
+
+- hosts: all
+  become: true
+  gather_facts: False
+  tasks:
+    # install basic packages and configure docker
+    - include_tasks: base.yaml
+
+    - name: Create subtensor directory
+      file:
+        path: /opt/subtensor
+        state: directory
+
+    - name: Copy docker-compose.yaml
+      copy:
+        src: docker-compose.yaml
+        dest: /opt/subtensor/docker-compose.yaml
+
+    - name: Start docker-compose
+      shell: docker compose up -d
+      args:
+        chdir: /opt/subtensor
