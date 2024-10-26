@@ -1,8 +1,8 @@
 name            = "subtensor-cluster"
-size            = "g6-standard-8"
+size            = "g6-standard-6"
 port            = 9944
 number_of_nodes = 2
 
 ssh_keys = [
-  "<put your public key here>",
+  "SSH_KEY_HERE",
 ]
